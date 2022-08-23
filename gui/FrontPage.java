@@ -1,21 +1,22 @@
 package gui;
 
-import java.awt.BorderLayout;
+
+//https://stackoverflow.com/questions/12694790/dragging-jpanels-inside-jframe
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
-//import javax.swing.Box;
-//import javax.swing.Icon;
-//import javax.swing.ImageIcon;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
-import javax.swing.Box;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -23,7 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.Border;
 
 import image_mod.ChangeImageSize;
 
@@ -35,22 +36,81 @@ public class FrontPage extends JFrame{
 	JPanel panel;
 	JPanel optionsPanel;
 	JPanel networkPanel;
+	Border blackline;
+	int x = 0;
+	int y = 0;
+	
 	
 	
 //	Constructor
 	public FrontPage() {
-//		Set Frame name to "Cisco Automate"
+//		Set Frame router_name to "Cisco Automate"
 		super("Cisco Automate");
-		panel = new JPanel();
-//		Set width: 500px height: 300px
-		setSize(1000,600);
-//		Initialize the panel
+		panel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.weightx = 0.0;
+		c.weighty = 0.0;
+		
+//		Initialize routers array		
+		routers = new ArrayList<Router>();
+		blackline = BorderFactory.createLineBorder(Color.black);
+		setupNetworkPanel();
+		setupOptionPanel();
+		
+		setup();
+		
+		c.gridx = 0;
+		c.gridy = 0;
+		//columns
+		c.gridwidth = 1;
+		//rows
+		c.gridheight = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(optionsPanel,c);
+		
+		
+		c.gridx = 0;
+		c.gridy = 1;
+		//columns
+		c.gridwidth = 1;
+		//rows
+		c.gridheight = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(networkPanel,c);
+		
+		setSize(1000, 600);
+		setBorders();
+		finish();
+		
+	}
+	
+	private void setBorders() {
+		optionsPanel.setBorder(blackline);
+		networkPanel.setBorder(blackline);
+		panel.setBorder(blackline);
+	}
+	
+	private void setupOptionPanel() {
 		optionsPanel = new JPanel();
-		optionsPanel.setSize(1000,220);
+		JButton newRouterButton = new JButton("New Router");
+		newRouterButton = addNewRouterButtonListener(newRouterButton);
+		
+		JButton exportNetworkScriptButton = new JButton("Export Network Script");
+		
+//		Add  the buttons to a box which will be added to optionsPanel 
+		optionsPanel.add(newRouterButton);
+		optionsPanel.add(exportNetworkScriptButton);
+//		newRouterButton.setSize(100,20);
+//		exportNetworkScriptButton.setSize(100,20);
+		return;
+	}
+	private void setupNetworkPanel() {
+		
 		networkPanel = new JPanel();
-		networkPanel.setSize(1000,440);
-//		networkPanel.setLayout(new BoxLayout(networkPanel, BoxLayout.PAGE_AXIS));
-//        networkPanel.setBorder(new EmptyBorder(28, 28, 28, 28));
+		return;
+	}
+	
+	private void setup() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		addWindowListener(new WindowAdapter(){
@@ -61,30 +121,23 @@ public class FrontPage extends JFrame{
 		});
 		setLocationByPlatform(true);
 		
-//		Initialize routers array		
-		routers = new ArrayList<Router>();
-		
-//		Make a button that creates a new router.
-		JButton newRouterButton = new JButton("New Router");
-		newRouterButton.setSize(100,100);
-		newRouterButton = addNewRouterButtonListener(newRouterButton);
-		
-		
-//		Make a button that exports the script of the network.
-		JButton exportNetworkScriptButton = new JButton("Export Network Script");
-		exportNetworkScriptButton.setSize(100,100);
-		
-//		Add  the buttons to a box which will be added to optionsPanel 
-		optionsPanel.add(newRouterButton);
-		optionsPanel.add(exportNetworkScriptButton);
-//		optionsPanel.setSize(1000,200);
-		
-		panel.add(optionsPanel); //,BorderLayout.NORTH
-		panel.add(networkPanel); //,BorderLayout.CENTER
+	}
+	
+	private void finish() {
+		setContentPane(panel);
 		optionsPanel.setVisible(true);
 		networkPanel.setVisible(true);
 		panel.setVisible(true);
-		add(panel);
+		networkPanel.invalidate();
+		optionsPanel.invalidate();
+		networkPanel.revalidate();
+		optionsPanel.revalidate();
+		networkPanel.repaint();
+		optionsPanel.repaint();
+		invalidate();
+		revalidate();
+		pack();
+		repaint();
 		setVisible(true);
 	}
 	
@@ -95,16 +148,23 @@ public class FrontPage extends JFrame{
 //				Create a new Router
 				Router newRouter = new Router();
 				routers.add(newRouter);
-//				Create an editable Router name field (to be below the router image)
-				JTextField name = new JTextField(newRouter.hostname);
+//				Create an editable Router router_name field (to be below the router image)
+				JTextField router_name = new JTextField(newRouter.hostname);
 //				Add the new router to ArrayList of routers
 				routers.add(newRouter);
+				final JPanel routerPanel = new JPanel();
 //				Create a 200x200 ImageIcon of a router
 				ImageIcon ii = ChangeImageSize.resize("gui/router.png", 200, 200);
 //				Create a JButton from the ImageIcon router.
-				JButton iib = new JButton(ii);
+				JButton router = new JButton(ii);
+				routerPanel.add(router);
+				routerPanel.setBorder(blackline);
+				router.setAlignmentX(Component.LEFT_ALIGNMENT);
+				routerPanel.setLayout(new BoxLayout(routerPanel,BoxLayout.Y_AXIS));
+				routerPanel.setSize(200,220);
+				routerPanel.setBorder(blackline);
 				
-				iib.addMouseListener(new MouseAdapter() {
+				router.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mousePressed(MouseEvent e) {
 						if (SwingUtilities.isRightMouseButton(e)) {
@@ -113,17 +173,27 @@ public class FrontPage extends JFrame{
 						}
 					}			
 				});
-//				routerPanel.add(iib); //,Component.CENTER_ALIGNMENT
-				iib.setAlignmentX(Component.CENTER_ALIGNMENT);
-//				Add the JTextField router name to the routerPanel.
-//				routerPanel.add(name); // , BorderLayout.CENTER
-				name.setAlignmentX(Component.CENTER_ALIGNMENT);
-				networkPanel.add(iib);
-				networkPanel.add(name);
-				
+//				routerPanel.add(router); //,Component.CENTER_ALIGNMENT
+//				router.setAlignmentX(Component.CENTER_ALIGNMENT);
+//				Add the JTextField router router_name to the routerPanel.
+//				routerPanel.add(router_name); // , BorderLayout.CENTER
+//				router_name.setAlignmentX(Component.CENTER_ALIGNMENT);
+//				router_name.setSize(100,20);
+				routerPanel.add(router_name);
+				router_name.setAlignmentX(Component.LEFT_ALIGNMENT);
+				routerPanel.addMouseListener(new MouseAdapter() {
+					@Override
+		            public void mouseClicked(MouseEvent e) {
+						handleDrag(routerPanel);
+						networkPanel.invalidate();
+						networkPanel.revalidate();
+						networkPanel.repaint();
+					}
+				});
+				networkPanel.add(routerPanel);			
 				networkPanel.revalidate();
 				networkPanel.repaint();
-				System.out.println(name.getRootPane().getParent());
+//				System.out.println(router_name.getRootPane().getParent());
 						
 //						getLocationOnScreen());
 //				System.out.println(frame.getComponentCount());  
@@ -132,5 +202,30 @@ public class FrontPage extends JFrame{
 		return button;
 	}
 	
+	public void handleDrag(final JPanel panel){ 
+	    panel.addMouseListener(new MouseAdapter() {
+	        @Override
+	        public void mousePressed(MouseEvent me) {
+	             x = me.getX();
+	             y = me.getY();
+	        }
+	    });
+	    panel.addMouseMotionListener(new MouseMotionAdapter() {
+	        @Override
+	        public void mouseDragged(MouseEvent me) {
+	            me.translatePoint(me.getComponent().getLocation().x-x, me.getComponent().getLocation().y-y);
+	            panel.setLocation(me.getX(), me.getY());
+	            
+	        }
+	    });
+	}
+
+//	Meant for GridBagLayout
+//	public void addComponent(JPanel p,Component comp,,GridBagConstraints c) {
+//		c.fill = GridBagConstraints.BOTH;
+//		p.add(comp,c);
+//	}
+	
 }
+	
 
